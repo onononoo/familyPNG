@@ -111,7 +111,7 @@
 <div id="status"><span id="statusText">ready</span><span id="count">0 objects</span></div>
 
 <script>
-// Put PNGs in the "pngs" folder named like: peter-griffin.png
+// Images live in the "pngs" folder named like: peter-griffin.png (.jpg and .gif work too)
 const CHARACTERS = [
   "Peter Griffin", "Lois Griffin", "Meg Griffin", "Chris Griffin", "Stewie Griffin", "Brian Griffin",
   "Glenn Quagmire", "Cleveland Brown", "Joe Swanson", "Bonnie Swanson", "Kevin Swanson", "Susie Swanson",
@@ -139,12 +139,14 @@ function placeholder(name) {
   return d;
 }
 
-// image with fallback to a colored placeholder if the png is missing
+// look for pngs/<name>.png, then .jpg, then .gif, and fall back to a grey placeholder
+const EXTS = ["png", "jpg", "gif"];
 function charImage(name, src) {
   const img = document.createElement("img");
-  img.src = src || "pngs/" + slug(name) + ".png";
+  let tries = src ? [src] : EXTS.map(ext => "pngs/" + slug(name) + "." + ext);
   img.draggable = false;
-  img.onerror = () => img.replaceWith(placeholder(name));
+  img.onerror = () => tries.length ? img.src = tries.shift() : img.replaceWith(placeholder(name));
+  img.src = tries.shift();
   return img;
 }
 
