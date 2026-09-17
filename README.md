@@ -4,6 +4,7 @@ a plain grey page for making little family guy scenes. put characters on a stage
 
 no build step and no dependencies. open `index.html` in a browser.
 
+HEAD
 ## files
 
 ```
@@ -33,6 +34,13 @@ use `null` for the file to get a grey placeholder card.
 you can also add images while the page is open with **add png**, or by dragging image files onto the stage. those only last until you reload, unless they're in a saved scene.
 
 the bundled images came from the [family guy wiki](https://familyguy.fandom.com). they are webp files, and most are screenshots rather than cutouts, so they show up as rectangles. to replace one, put a transparent png in `pngs/` and point its line in `data.js` at it. a few show more than one person: jillian with derek, mickey mcfinnigan with peter, and james woods with peter.
+=======
+## Running it locally
+
+Open `index.html` in a browser. That's it.
+
+## Controls
+6e218bfb8694531986d47ba184090265cdc01cb9
 
 ## controls
 
