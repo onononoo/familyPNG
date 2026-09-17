@@ -39,9 +39,6 @@ the bundled images came from the [family guy wiki](https://familyguy.fandom.com)
 
 Open `index.html` in a browser. That's it.
 
-## Controls
-6e218bfb8694531986d47ba184090265cdc01cb9
-
 ## controls
 
 | action | how |
