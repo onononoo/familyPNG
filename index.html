@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>familyPNG</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: #e6e6e6;
+    --panel: #efefef;
+    --line: #bdbdbd;
+    --text: #444;
+    --muted: #777;
+    --stage: #d4d4d4;
+    --paper: #f5f5f5;
+    --ink: #555;
+    --font: Arial, Helvetica, sans-serif;
+  }
+  * { box-sizing: border-box; border-radius: 0 !important; box-shadow: none !important; text-shadow: none !important; }
+  html, body { height: 100%; }
+  body { margin: 0; font: 12px var(--font); color: var(--text); background: var(--bg);
+         display: flex; flex-direction: column; user-select: none; }
+  button, input, label { font: 12px var(--font); color: var(--text); }
+
+  #top { height: 28px; line-height: 27px; padding: 0 8px; background: var(--panel); border-bottom: 1px solid var(--line); }
+  #main { flex: 1; display: flex; min-height: 0; }
+
+  #side { width: 200px; background: var(--panel); border-right: 1px solid var(--line); display: flex; flex-direction: column; }
+  #side .btns { padding: 6px; display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--line); }
+  #side button, #side label.btn { padding: 3px 6px; cursor: default; border: 1px solid var(--line); background: var(--bg); }
+  #side button:hover, #side label.btn:hover { background: #dcdcdc; }
+  #side input[type=file] { display: none; }
+  #side input[type=color] { width: 28px; height: 22px; padding: 0; border: 1px solid var(--line); background: var(--bg); }
+  #filter { margin: 6px; padding: 3px 4px; border: 1px solid var(--line); background: var(--paper); outline: none; }
+  #list { overflow-y: auto; flex: 1; padding: 0 6px 6px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; align-content: start; grid-auto-rows: max-content; }
+  .pick { border: 1px solid var(--line); padding: 2px; text-align: center; font-size: 10px; color: var(--muted);
+          cursor: default; background: var(--paper); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .pick:hover { background: #e2e2e2; }
+  .pick img, .pick .ph { width: 100%; height: 60px; object-fit: contain; pointer-events: none; }
+
+  #stage { flex: 1; position: relative; overflow: hidden; background: var(--stage) center/cover no-repeat; }
+  #status { height: 22px; line-height: 21px; padding: 0 8px; background: var(--panel); border-top: 1px solid var(--line);
+            color: var(--muted); display: flex; justify-content: space-between; }
+
+  .item { position: absolute; cursor: default; touch-action: none; }
+  .item .body { width: 100%; }
+  .item img { width: 100%; display: block; pointer-events: none; filter: saturate(0.35) contrast(0.9); }
+  .item.flip .body.char { transform: scaleX(-1); }
+  .item.sel { outline: 1px dotted #888; }
+
+  .ph { display: flex; align-items: center; justify-content: center; text-align: center;
+        color: #666; border: 1px solid var(--line); font-size: 10px; }
+  .item .ph { aspect-ratio: 3/4; font-size: 12px; }
+
+  .handle { display: none; position: absolute; right: -4px; bottom: -4px; width: 8px; height: 8px;
+            background: #999; cursor: nwse-resize; }
+  .tools { display: none; position: absolute; top: -22px; left: 0; white-space: nowrap; }
+  .tools button { font-size: 11px; padding: 1px 4px; border: 1px solid var(--line); background: var(--panel); cursor: default; }
+  .item.sel .handle, .item.sel .tools { display: block; }
+
+  /* text boxes share one plain look */
+  .bubble .body, .thought .body, .caption .body { background: var(--paper); border: 1px solid #999; color: var(--ink);
+       font: 14px var(--font); text-align: left; position: relative; padding: 6px 8px; min-height: 28px; }
+
+  /* speech bubble */
+  .bubble .body::after, .bubble .body::before { content: ""; position: absolute; left: 16px; border-style: solid; }
+  .bubble .body::before { bottom: -12px; border-width: 12px 8px 0 0; border-color: #999 transparent transparent; }
+  .bubble .body::after { bottom: -10px; left: 17px; border-width: 10px 6px 0 0; border-color: var(--paper) transparent transparent; }
+  .bubble.flip .body::before { left: auto; right: 16px; border-width: 12px 0 0 8px; }
+  .bubble.flip .body::after { left: auto; right: 17px; border-width: 10px 0 0 6px; }
+
+  /* thought bubble */
+  .thought .body { border-style: dashed; }
+  .thought .body::before, .thought .body::after { content: ""; position: absolute; background: var(--paper); border: 1px solid #999; }
+  .thought .body::before { width: 8px; height: 8px; bottom: -13px; left: 18px; }
+  .thought .body::after { width: 5px; height: 5px; bottom: -21px; left: 12px; }
+  .thought.flip .body::before { left: auto; right: 18px; }
+  .thought.flip .body::after { left: auto; right: 12px; }
+
+  /* caption box */
+  .caption .body { background: #e0e0e0; color: #666; font-size: 12px; text-transform: lowercase; }
+
+  [contenteditable=true] { cursor: text; user-select: text; outline: none; }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-thumb { background: #c4c4c4; }
+  ::-webkit-scrollbar-track { background: var(--panel); }
+</style>
+</head>
+<body>
+
+<div id="top">familyPNG</div>
+
+<div id="main">
+  <div id="side">
+    <div class="btns">
+      <button onclick="addText('bubble')">speech</button>
+      <button onclick="addText('thought')">thought</button>
+      <button onclick="addText('caption')">caption</button>
+      <label class="btn">add png<input type="file" id="pngIn" accept="image/*" multiple></label>
+      <label class="btn">background<input type="file" id="bgIn" accept="image/*"></label>
+      <input type="color" id="bgColor" value="#d4d4d4" title="background color">
+      <button onclick="clearScene()">clear</button>
+    </div>
+    <input id="filter" placeholder="filter">
+    <div id="list"></div>
+  </div>
+
+  <div id="stage"></div>
+</div>
+
+<div id="status"><span id="statusText">ready</span><span id="count">0 objects</span></div>
+
+<script>
+// Put PNGs in the "pngs" folder named like: peter-griffin.png
+const CHARACTERS = [
+  "Peter Griffin", "Lois Griffin", "Meg Griffin", "Chris Griffin", "Stewie Griffin", "Brian Griffin",
+  "Glenn Quagmire", "Cleveland Brown", "Joe Swanson", "Bonnie Swanson", "Kevin Swanson", "Susie Swanson",
+  "Mort Goldman", "Muriel Goldman", "Neil Goldman", "Herbert", "Adam West", "Tom Tucker", "Diane Simmons",
+  "Joyce Kinney", "Ollie Williams", "Carl", "Consuela", "Ernie the Giant Chicken", "Death", "Seamus",
+  "Bruce", "Jillian", "Ida Quagmire", "Carter Pewterschmidt", "Barbara Pewterschmidt", "Francis Griffin",
+  "Thelma Griffin", "Vinny", "Rupert", "Jesus", "God", "Evil Monkey", "Dr Hartman", "Horace", "Opie",
+  "Angela", "Jerome", "Donna Tubbs", "Rallo Tubbs", "Principal Shepherd", "Buzz Killington", "Greased Up Deaf Guy",
+  "Jake Tucker", "Mayor West"
+];
+
+const stage = document.getElementById("stage");
+const list = document.getElementById("list");
+let selected = null, z = 1;
+
+const slug = n => n.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+// every placeholder gets a slightly different shade of grey
+const color = n => "hsl(0,0%," + (78 + [...n].reduce((a, c) => a + c.charCodeAt(0), 0) % 10) + "%)";
+
+function placeholder(name) {
+  const d = document.createElement("div");
+  d.className = "ph";
+  d.style.background = color(name);
+  d.textContent = name;
+  return d;
+}
+
+// image with fallback to a colored placeholder if the png is missing
+function charImage(name, src) {
+  const img = document.createElement("img");
+  img.src = src || "pngs/" + slug(name) + ".png";
+  img.draggable = false;
+  img.onerror = () => img.replaceWith(placeholder(name));
+  return img;
+}
+
+// ---------- palette ----------
+function addToPalette(name, src) {
+  const p = document.createElement("div");
+  p.className = "pick";
+  p.draggable = true;
+  p.appendChild(charImage(name, src));
+  p.appendChild(document.createTextNode(name));
+  p.onclick = () => addChar(name, src);
+  p.ondragstart = e => e.dataTransfer.setData("text/plain", JSON.stringify({ name, src }));
+  list.appendChild(p);
+}
+CHARACTERS.forEach(n => addToPalette(n));
+
+// ---------- scene items ----------
+function makeItem(cls, x, y, w) {
+  const it = document.createElement("div");
+  it.className = "item " + cls;
+  it.style.left = x + "px";
+  it.style.top = y + "px";
+  it.style.width = w + "px";
+  it.style.zIndex = ++z;
+  const body = document.createElement("div");
+  body.className = "body";
+  it.appendChild(body);
+
+  const tools = document.createElement("div");
+  tools.className = "tools";
+  const btn = (label, fn) => {
+    const b = document.createElement("button");
+    b.textContent = label;
+    b.onpointerdown = e => e.stopPropagation();
+    b.onclick = e => { e.stopPropagation(); fn(); };
+    tools.appendChild(b);
+  };
+  btn("flip", () => it.classList.toggle("flip"));
+  btn("front", () => it.style.zIndex = ++z);
+  btn("back", () => it.style.zIndex = Math.min(...[...stage.querySelectorAll(".item")].map(i => +i.style.zIndex)) - 1);
+  btn("copy", () => duplicate(it));
+  if (cls !== "char") {
+    btn("a+", () => fontSize(body, 2));
+    btn("a-", () => fontSize(body, -2));
+  }
+  btn("x", () => remove(it));
+  it.appendChild(tools);
+
+  const h = document.createElement("div");
+  h.className = "handle";
+  it.appendChild(h);
+
+  stage.appendChild(it);
+  select(it);
+  return it;
+}
+
+function center(w) {
+  return [stage.clientWidth / 2 - w / 2 + (Math.random() * 120 - 60), stage.clientHeight / 2 - 100 + (Math.random() * 80 - 40)];
+}
+
+function addChar(name, src, x, y) {
+  const w = 160;
+  if (x === undefined) [x, y] = center(w);
+  const it = makeItem("char", x, y, w);
+  it.querySelector(".body").classList.add("char");
+  it.querySelector(".body").appendChild(charImage(name, src));
+}
+
+function addText(kind, x, y) {
+  const w = kind === "caption" ? 240 : 200;
+  if (x === undefined) [x, y] = center(w);
+  const it = makeItem(kind, x, y, w);
+  const body = it.querySelector(".body");
+  body.textContent = kind === "caption" ? "meanwhile" : kind === "thought" ? "hmm" : "hello";
+  editText(body);
+}
+
+function editText(body) {
+  body.contentEditable = true;
+  body.focus();
+  document.getSelection().selectAllChildren(body);
+  body.onblur = () => body.contentEditable = false;
+}
+
+function fontSize(body, d) {
+  const s = parseInt(getComputedStyle(body).fontSize);
+  body.style.fontSize = Math.max(8, s + d) + "px";
+}
+
+function duplicate(it) {
+  const kind = ["char", "bubble", "thought", "caption"].find(k => it.classList.contains(k));
+  const c = makeItem(kind, parseInt(it.style.left) + 20, parseInt(it.style.top) + 20, it.offsetWidth);
+  const body = c.querySelector(".body"), orig = it.querySelector(".body");
+  body.className = orig.className;
+  body.style.cssText = orig.style.cssText;
+  body.innerHTML = orig.innerHTML;
+  body.contentEditable = false;
+  if (it.classList.contains("flip")) c.classList.add("flip");
+}
+
+function remove(it) { it.remove(); if (selected === it) selected = null; }
+
+function select(it) {
+  if (selected) selected.classList.remove("sel");
+  selected = it;
+  if (it) it.classList.add("sel");
+}
+
+// ---------- drag / resize ----------
+let action = null;
+stage.addEventListener("pointerdown", e => {
+  const it = e.target.closest(".item");
+  if (!it) { select(null); document.activeElement.blur(); return; }
+  if (e.target.isContentEditable) return;
+  select(it);
+  e.preventDefault();
+  const r = stage.getBoundingClientRect();
+  action = {
+    it,
+    resize: e.target.classList.contains("handle"),
+    sx: e.clientX, sy: e.clientY,
+    x: parseInt(it.style.left), y: parseInt(it.style.top), w: it.offsetWidth
+  };
+});
+window.addEventListener("pointermove", e => {
+  if (!action) return;
+  const dx = e.clientX - action.sx, dy = e.clientY - action.sy;
+  if (action.resize) {
+    action.it.style.width = Math.max(40, action.w + dx) + "px";
+  } else {
+    action.it.style.left = action.x + dx + "px";
+    action.it.style.top = action.y + dy + "px";
+  }
+});
+window.addEventListener("pointerup", () => action = null);
+
+stage.addEventListener("dblclick", e => {
+  const it = e.target.closest(".item");
+  if (it && !it.classList.contains("char")) editText(it.querySelector(".body"));
+});
+
+window.addEventListener("keydown", e => {
+  if (document.activeElement.isContentEditable) {
+    if (e.key === "Escape") document.activeElement.blur();
+    return;
+  }
+  if (document.activeElement.tagName === "INPUT") return;
+  if (selected && (e.key === "Delete" || e.key === "Backspace")) remove(selected);
+});
+
+// ---------- drop from palette or files ----------
+stage.addEventListener("dragover", e => e.preventDefault());
+stage.addEventListener("drop", e => {
+  e.preventDefault();
+  const r = stage.getBoundingClientRect();
+  const x = e.clientX - r.left - 80, y = e.clientY - r.top - 100;
+  if (e.dataTransfer.files.length) {
+    [...e.dataTransfer.files].forEach((f, i) => loadFile(f, (name, src) => { addToPalette(name, src); addChar(name, src, x + i * 30, y); }));
+  } else {
+    try {
+      const d = JSON.parse(e.dataTransfer.getData("text/plain"));
+      addChar(d.name, d.src, x, y);
+    } catch (_) {}
+  }
+});
+
+function loadFile(f, cb) {
+  if (!f.type.startsWith("image/")) return;
+  const rd = new FileReader();
+  rd.onload = () => cb(f.name.replace(/\.[^.]+$/, ""), rd.result);
+  rd.readAsDataURL(f);
+}
+
+document.getElementById("pngIn").onchange = e => {
+  [...e.target.files].forEach(f => loadFile(f, (name, src) => { addToPalette(name, src); addChar(name, src); }));
+  e.target.value = "";
+};
+document.getElementById("bgIn").onchange = e => {
+  const f = e.target.files[0];
+  if (f) loadFile(f, (_, src) => stage.style.backgroundImage = "url(" + src + ")");
+  e.target.value = "";
+};
+document.getElementById("bgColor").oninput = e => {
+  stage.style.backgroundImage = "none";
+  stage.style.backgroundColor = e.target.value;
+};
+
+function clearScene() {
+  if (confirm("clear scene?")) stage.querySelectorAll(".item").forEach(i => i.remove());
+}
+
+// ---------- blandness ----------
+const statusText = document.getElementById("statusText");
+const count = document.getElementById("count");
+let statusTimer;
+
+function status(msg) {
+  statusText.textContent = msg;
+  clearTimeout(statusTimer);
+  statusTimer = setTimeout(() => statusText.textContent = "ready", 2000);
+}
+
+// keep the object count in the status bar up to date
+new MutationObserver(() => {
+  const n = stage.querySelectorAll(".item").length;
+  count.textContent = n + (n === 1 ? " object" : " objects");
+}).observe(stage, { childList: true });
+
+// say what's selected
+let lastSelected = null;
+new MutationObserver(() => {
+  if (!selected || selected === lastSelected) { lastSelected = selected; return; }
+  lastSelected = selected;
+  const kind = ["bubble", "thought", "caption"].find(k => selected.classList.contains(k));
+  const name = selected.querySelector(".ph")?.textContent || "image";
+  status((kind || name).toLowerCase() + " selected");
+}).observe(stage, { subtree: true, attributes: true, attributeFilter: ["class"] });
+
+// sidebar filter
+document.getElementById("filter").oninput = e => {
+  const q = e.target.value.toLowerCase();
+  list.querySelectorAll(".pick").forEach(p => p.style.display = p.textContent.toLowerCase().includes(q) ? "" : "none");
+};
+
+// arrow keys nudge the selected thing (shift = 10px)
+window.addEventListener("keydown", e => {
+  if (!selected || document.activeElement.isContentEditable || document.activeElement.tagName === "INPUT") return;
+  const step = e.shiftKey ? 10 : 1;
+  const moves = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
+  if (!moves[e.key]) return;
+  e.preventDefault();
+  selected.style.left = parseInt(selected.style.left) + moves[e.key][0] + "px";
+  selected.style.top = parseInt(selected.style.top) + moves[e.key][1] + "px";
+});
+
+// snap to a 10px grid when you let go
+window.addEventListener("pointerup", () => {
+  if (!selected) return;
+  selected.style.left = Math.round(parseInt(selected.style.left) / 10) * 10 + "px";
+  selected.style.top = Math.round(parseInt(selected.style.top) / 10) * 10 + "px";
+});
+
+document.getElementById("bgColor").addEventListener("change", () => status("background changed"));
+document.getElementById("bgIn").addEventListener("change", () => status("background image set"));
+</script>
+</body>
+</html>
