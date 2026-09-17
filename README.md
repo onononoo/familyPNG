@@ -14,6 +14,7 @@ js/data.js        character and place lists
 js/scene.js       building items on the stage and reading them back
 js/editor.js      selection, mouse, keyboard
 js/app.js         scenes, undo, saving, sidebar
+js/favicon.js     cuts the tab icon out of peter's image
 pngs/             character images
 places/           background images
 .peter/           local dev server config (python -m http.server 8123)
