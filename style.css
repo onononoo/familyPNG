@@ -75,6 +75,22 @@ input[type=file] { display: none; }
 #stage { flex: 1; position: relative; overflow: hidden; background: var(--stage) center / cover no-repeat; }
 #marquee { display: none; position: absolute; z-index: 100000; border: 1px dotted #777; background: rgba(0, 0, 0, 0.04); pointer-events: none; }
 
+#credits {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 6px;
+  z-index: 99999;
+  padding: 0 8px;
+  color: #000;
+  opacity: 0.4;
+  font-size: 10px;
+  line-height: 14px;
+  text-align: center;
+  pointer-events: none;
+}
+#credits span, #credits a { color: inherit; pointer-events: auto; user-select: text; }
+
 .item { position: absolute; touch-action: none; }
 .item .body { width: 100%; }
 .item img { display: block; width: 100%; pointer-events: none; filter: saturate(0.35) contrast(0.9); }
@@ -151,7 +167,7 @@ input[type=file] { display: none; }
 ::-webkit-scrollbar-track { background: var(--panel); }
 
 @media print {
-  #top, #side, #scenes, #status { display: none; }
+  #top, #side, #scenes, #status, #credits { display: none; }
   body { display: block; background: none; }
   #main { display: block; }
   #stage { height: 100vh; -webkit-print-color-adjust: exact; print-color-adjust: exact; }

@@ -173,7 +173,7 @@ function stagePoint(e) {
 }
 
 stage.addEventListener("pointerdown", function (e) {
-  if (e.button !== 0) return;
+  if (e.button !== 0 || e.target.closest("#credits")) return;
   var el = e.target.closest(".item");
 
   if (isEditingText() && e.target !== document.activeElement) document.activeElement.blur();
