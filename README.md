@@ -87,3 +87,7 @@ the strip under the stage holds the scenes.
 ## notes
 
 family guy and its characters belong to 20th television / fox. the images are for personal use. don't publish them with this page.
+
+## support :)
+all projects r open source! please donate to my bitcoin address: bc1qs4z04ltddh6vaqd4stu3p4vekv253ht4cwqma4 :3
+all other projects: https://github.com/onononoo
