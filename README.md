@@ -92,4 +92,5 @@ the code is under the mit license, see [LICENSE](LICENSE). the license doesn't c
 ## support :)
 all projects r open source! please donate to my bitcoin address: bc1qs4z04ltddh6vaqd4stu3p4vekv253ht4cwqma4 :3
 all other projects: https://github.com/onononoo
+
 my socials! (and other crypto addresses): https://guns.lol/karaeklund
